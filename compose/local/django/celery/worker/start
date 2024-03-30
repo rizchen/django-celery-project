@@ -3,4 +3,6 @@
 set -o errexit
 set -o nounset
 
-celery -A django_celery_example worker -l INFO
+watchfiles \
+  --filter python \
+  'celery -A django_celery_example worker --loglevel=info'
