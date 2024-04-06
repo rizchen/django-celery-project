@@ -38,6 +38,24 @@ def subscribe(request):
     form = YourForm()
     return render(request, 'form.html', {'form': form})
 
+def subscribe_ws(request):
+    """
+    Use Websocket to get notification of Celery task, instead of using ajax polling
+    """
+    if request.method == 'POST':
+        form = YourForm(request.POST)
+        if form.is_valid():
+            try:
+                task = sample_task.delay(form.cleaned_data['email'])
+                # return the task id so the JS can poll the state
+                return JsonResponse({
+                    'task_id': task.task_id,
+                })
+            except Exception as e:
+                print("Exception: ", e)
+
+    form = YourForm()
+    return render(request, 'form_ws.html', {'form': form})
 
 def task_status(request):
     task_id = request.GET.get('task_id')
