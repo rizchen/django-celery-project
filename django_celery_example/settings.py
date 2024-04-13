@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 
 import os
 
+from kombu import Queue
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -162,3 +164,32 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": 5.0,  # five seconds
     },
 }
+
+CELERY_TASK_DEFAULT_QUEUE = 'default'
+
+# Force all queues to be explicitly listed in `CELERY_TASK_QUEUES` to help prevent typos
+CELERY_TASK_CREATE_MISSING_QUEUES = False
+
+CELERY_TASK_QUEUES = (
+    # need to define default queue here or exception would be raised
+    Queue('default'),
+    Queue('high_priority'),
+    Queue('low_priority'),
+)
+
+# CELERY_TASK_ROUTES = {
+#     'django_celery_example.celery.*': {
+#         'queue': 'high_priority',
+#     },
+# }
+
+# dynamic task routing
+
+def route_task(name, args, kwargs, options, task=None, **kw):
+    if ':' in name:
+        queue, _ = name.split(':')
+        return {'queue': queue}
+    return {'queue': 'default'}
+
+
+CELERY_TASK_ROUTES = (route_task,)
