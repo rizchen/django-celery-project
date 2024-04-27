@@ -5,6 +5,7 @@ import requests
 from celery import shared_task
 from celery.signals import task_postrun
 from celery.utils.log import get_task_logger
+from django.contrib.auth.models import User
 
 from polls.consumers import notify_channel_layer
 
@@ -67,3 +68,8 @@ def dynamic_example_two():
 @shared_task(name='high_priority:dynamic_example_three')
 def dynamic_example_three():
     logger.info('Example Three')
+
+@shared_task()
+def task_send_welcome_email(user_pk):
+    user = User.objects.get(pk=user_pk)
+    logger.info(f'send email to {user.email} {user.pk}')
